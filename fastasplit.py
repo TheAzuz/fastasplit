@@ -1,4 +1,13 @@
-#!/bin/python3
+#! /usr/bin/env python3
+
+##############
+# fastasplit #
+##############
+# main script
+
+# author: Josh Tompkin
+# contact: tompkinjo@gmail.com
+# github: https://github.com/jtompkin/fastasplit
 
 import _version
 import argparse
