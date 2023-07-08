@@ -1,5 +1,6 @@
 # fastasplit
-Split fasta files\n
+Split fasta files
+
 Josh Tompkin, 2020
 
 ## Installation and usage
