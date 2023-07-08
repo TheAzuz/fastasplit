@@ -185,11 +185,11 @@ def main():
 
     parser.add_argument('-n', '--number', metavar='int', dest='num', type=pos_int, required=not ('-e' in sys.argv or '--every' in sys.argv), help='Number of files to split fasta into')
     
-    parser.add_argument('-s', '--seqnum', dest='seqnum', action='store_true', help='`-n` represents number of sequences to put in each file. Default is number of files NO EFFECT YET')
+    parser.add_argument('-s', '--seqnum', dest='seqnum', action='store_true', help='`-n` represents number of sequences to put in each file')
     
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help='Suppress printing progress messages to the screen')
 
-    parser.add_argument('-v', '--verbose', dest='verbose', action='count', default=0, help='Increases verbosity level. Can be invoked up to 3 times to increase level further')
+    parser.add_argument('-v', '--verbose', dest='verbose', action='count', default=0, help='Increases verbosity level. Can be invoked up to 3 times')
 
     parser.add_argument('fasta', help='Path to fasta file')
 
