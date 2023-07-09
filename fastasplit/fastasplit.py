@@ -9,7 +9,7 @@
 # contact: tompkinjo@gmail.com
 # github: https://github.com/jtompkin/fastasplit
 
-import _version
+from . import _version
 import argparse
 import sys, os
 
