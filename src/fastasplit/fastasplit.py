@@ -9,7 +9,7 @@
 # contact: tompkinjo@gmail.com
 # github: https://github.com/jtompkin/fastasplit
 
-import _version
+from importlib.metadata import version
 import argparse
 import sys, os
 
@@ -173,7 +173,7 @@ def pos_int(x):
 def main():
     parser = argparse.ArgumentParser(description="Split a fasta file into smaller files with an equal number of sequences.")
 
-    parser.add_argument('--version', action='version', version="%(prog)s {}".format(_version.__version__), help='Show version information and exit')
+    parser.add_argument('--version', action='version', version="%(prog)s {}".format(version('fastasplit')), help='Show version information and exit')
 
     parser.add_argument('-d', '--directory', metavar='dir', dest='dir', default='.', help='Specify directory to place split files in. Default is \'.\'',)
 

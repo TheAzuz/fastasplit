@@ -1,0 +1,1 @@
+from fastasplit import main
