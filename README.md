@@ -5,7 +5,10 @@ Josh Tompkin, 2023
 
 ## Installation and usage
 
-Download fastasplit.py and run with python3.
+install with pip:
+```bash
+    pip3 install fastasplit
+```
 
 Usage:
 ```bash
