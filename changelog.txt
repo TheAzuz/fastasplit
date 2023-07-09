@@ -9,3 +9,6 @@ v1.2.0
 
 v1.2.2
  - Fixed formatting errors and added checks for large numbers of output files
+
+ v1.2.6
+ - Successfully packaged for distribution
