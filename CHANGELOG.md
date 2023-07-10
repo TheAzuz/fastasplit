@@ -26,3 +26,8 @@
 
 ### Changed
 - **breaking:** Now installs with pip
+
+## [1.2.7] - 2023-07-10
+
+### Added
+- Documentation for pypi
