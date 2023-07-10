@@ -31,3 +31,8 @@
 
 ### Added
 - Documentation for pypi
+
+## [1.2.8] - 2023-07-10
+
+### Changed
+- Formatting in source
