@@ -5,7 +5,7 @@ Josh Tompkin, 2023
 
 ## Installation and usage
 
-install with pip:
+Install with pip:
 ```bash
     pip3 install fastasplit
 ```
