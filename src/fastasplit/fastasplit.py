@@ -38,19 +38,11 @@ def getseqn(fasta: str, quiet: bool) -> int:
         print (f"Found {nseq} sequences in fasta file")
     return nseq
 
-def splite(fasta: str, prefix: str | None, full: bool, quiet: bool, directory: str, verbose: int, force: bool) -> None:
-    """Split each sequence in fasta file into a separate file
+def splite(args) -> None:
+    """Split each sequence in fasta file into a separate file"""
 
-    Args:
-        fasta (str): Path to fasta file
-        prefix (str | None): Prefix to give split files. `None` if using header
-        full (bool): Use full sequence header for prefix
-        quiet (bool): Print progress messages
-        directory (str): Directory to place split files
-        verbose (int): Verbosity level
-    """
-    seqnum = getseqn(fasta, quiet)
-    if not force:
+    seqnum = getseqn(args.fasta, args.quiet)
+    if not args.force:
         if seqnum > 100:
             flag = True
             while flag:
@@ -63,45 +55,38 @@ def splite(fasta: str, prefix: str | None, full: bool, quiet: bool, directory: s
 
     ndigits = len(str(seqnum))
 
-    with open(fasta, 'r', encoding="UTF-8") as fastafile:
+    with open(args.fasta, 'r', encoding="UTF-8") as fastafile:
 
         nsplit = 1
         for line in fastafile:
 
             if line[0] == '>':
-                if prefix is not None:
-                    name = f"{prefix}.{nsplit:0{ndigits}d}.fa"
-                    if not quiet:
-                        if verbose > 0:
+                if args.prefix is not None:
+                    name = f"{args.prefix}.{nsplit:0{ndigits}d}.fa"
+                    if not args.quiet:
+                        if args.verbose > 0:
                             print(f"Creating split file {nsplit}/{seqnum}...")
-                        elif verbose > 1:
+                        elif args.verbose > 1:
                             print(f"Creating split file {nsplit}/{seqnum} for sequence: {line.strip()[1:]}")
-                elif full:
+                elif args.full:
                     name = line.strip()[1:]
                 else:
                     words = line.strip().split()
                     name = f"{words[0][1:] if len(words[0]) > 1 else words[1]}.fa"
 
-                splitfile = open(f"{directory}/{name}", 'w', encoding="UTF-8")
+                splitfile = open(f"{args.directory}/{name}", 'w', encoding="UTF-8")
                 nsplit += 1
 
             splitfile.write(line)
 
-def splits(num: int, fasta: str, prefix: str, quiet: bool, directory: str, verbose: int, force: bool) -> None:
-    """Split fasta file by number of sequences
+#def splits(num: int, fasta: str, prefix: str, quiet: bool, directory: str, verbose: int, force: bool) -> None:
+def splits(args) -> None:
+    """Split fasta file by number of sequences"""
 
-    Args:
-        num (int): Number of sequences to place in each file
-        fasta (str): Path to fasta file
-        prefix (str): Prefix to give split files
-        quiet (bool): Print progress messages
-        directory (str): Directory to place split files
-        verbose (int): Verbosity level
-    """
-    nseq = getseqn(fasta, quiet)
-    nfile = (nseq // num) + (nseq % num > 0)
+    nseq = getseqn(args.fasta, args.quiet)
+    nfile = (nseq // args.num) + (nseq % args.num > 0)
     ndigit = len(str(nfile))
-    if not force:
+    if not args.force:
         if nfile > 100:
             flag = True
             while flag:
@@ -112,85 +97,77 @@ def splits(num: int, fasta: str, prefix: str, quiet: bool, directory: str, verbo
                 elif cont == 'y':
                     flag = False
 
-    with open(fasta, 'r', encoding="UTF-8") as fastafile:
+    with open(args.fasta, 'r', encoding="UTF-8") as fastafile:
         splitnum = 1
-        splitfile = open(f"{directory}/{prefix}.{splitnum:0{ndigit}d}.fa", 'w', encoding="UTF-8")
-        if not quiet:
+        splitfile = open(f"{args.directory}/{args.prefix}.{splitnum:0{ndigit}d}.fa", 'w', encoding="UTF-8")
+        if not args.quiet:
             print (f"Creating split file {splitnum}/{nfile}...")
-            if verbose > 0:
-                print (f"   Split file {splitnum} will contain {num} sequences")
+            if args.verbose > 0:
+                print (f"   Split file {splitnum} will contain {args.num} sequences")
         seqcount = 0
         for line in fastafile:
             if line[0] == '>':
                 seqcount += 1
-                if seqcount > num:
+                if seqcount > args.num:
                     splitfile.close()
                     splitnum += 1
-                    splitfile = open(f"{directory}/{prefix}.{splitnum:0{ndigit}d}.fa", 'w', encoding="UTF-8")
-                    if not quiet:
+                    splitfile = open(f"{args.directory}/{args.prefix}.{splitnum:0{ndigit}d}.fa", 'w', encoding="UTF-8")
+                    if not args.quiet:
                         print (f"Creating split file {splitnum}/{nfile}...")
-                        if verbose > 0:
-                            print (f"   Split file {splitnum} will contain {num} sequences")
+                        if args.verbose > 0:
+                            print (f"   Split file {splitnum} will contain {args.num} sequences")
                     seqcount = 1
             splitfile.write(line)
 
-def splitn(num: int, fasta: str, prefix: str, quiet: bool, directory: str, verbose: int, force: bool) -> None:
-    """Split fasta file into a number of files with equal number of sequences
+def splitn(args) -> None:
+    """Split fasta file into a number of files with equal number of sequences"""
 
-    Args:
-        num (int): Number of files to split fasta file into
-        fasta (str): Path to fasta file
-        prefix (str): Prefix to give split files
-        quiet (bool): Print progress messages
-        directory (str): Directory to place split files
-        verbose (int): Verbosity level
-    """
-    if not force:
-        if num > 100:
+    if not args.force:
+        if args.num > 100:
             flag = True
             while flag:
-                cont = input(f"This command will create {num} output files. Are you sure you want to proceed? (y/n) ").lower()
+                cont = input(f"This command will create {args.num} output files. Are you sure you want to proceed? (y/n) ").lower()
                 if cont == 'n':
                     flag = False
-                    sys.exit()
+                    sys.exit(2)
                 elif cont == 'y':
                     flag = False
 
-    ndigits = len(str(num))
-    splitnum = getseqn(fasta, quiet)
-    perfile, remain = (splitnum // num, splitnum % num)
+    ndigits = len(str(args.num))
+    splitnum = getseqn(args.fasta, args.quiet)
+    perfile, remain = (splitnum // args.num, splitnum % args.num)
 
-    with open(fasta, 'r', encoding='UTF-8') as fastafile:
+    with open(args.fasta, 'r', encoding='UTF-8') as fastafile:
         splitnum = 1
-        splitfile = open(f'{directory}/{prefix}.{splitnum:0{ndigits}d}.fa', 'w', encoding='UTF-8')
+        splitfile = open(f'{args.directory}/{args.prefix}.{splitnum:0{ndigits}d}.fa', 'w', encoding='UTF-8')
         if remain > 0:
             perthisfile = perfile + 1
         else:
             perthisfile = perfile
         remain -= 1
-        if not quiet:
-            print (f"Creating split file {splitnum}/{num}...")
-            if verbose > 0:
+        if not args.quiet:
+            print (f"Creating split file {splitnum}/{args.num}...")
+            if args.verbose > 0:
                 print (f"   Split file {splitnum+1} will contain {perthisfile} sequences")
 
         seqcount = 0
         for line in fastafile:
             if line[0] == '>':  # Line is a sequence header
-                if verbose > 2:
+                if args.verbose > 2:
                     print (f"Adding sequence: {line[1:].strip()}")
                 seqcount += 1
                 if seqcount > perthisfile:  # Need to open new split file
                     splitfile.close()
                     splitnum += 1
-                    splitfile = open(f'{directory}/{prefix}.{splitnum:0{ndigits}d}.fa', 'w', encoding='UTF-8')
-                    if not quiet:
-                        print (f"Creating split file {splitnum}/{num}...")
+                    splitfile = open(f'{args.directory}/{args.prefix}.{splitnum:0{ndigits}d}.fa', 'w', encoding='UTF-8')
+                    if not args.quiet:
+                        print (f"Creating split file {splitnum}/{args.num}...")
                     if remain > 0:
                         perthisfile = perfile + 1
                     else:
                         perthisfile = perfile
                     remain -= 1
-                    if verbose > 0:
+                    if args.verbose > 0:
                         print (f"   Split file {splitnum} will contain {perthisfile} sequences")
                     seqcount = 1
             splitfile.write(line)
@@ -209,11 +186,15 @@ def main():
     """Main script wrapper. Parses arguments and calls appropriate function"""
     parser = argparse.ArgumentParser(
         description="Split a fasta file into smaller files with an equal number of sequences.")
-
-    parser.add_argument('--version', action='version', version=f"{'%(prog)s'} {version('fastasplit')}",
-                        help='Show version information and exit')
-
-    parser.add_argument('-d', '--directory', metavar='dir', dest='dir', default='.',
+    
+    try:
+        parser.add_argument('--version', action='version', version=f"{'%(prog)s'} {version('fastasplit')}",
+                            help='Show version information and exit')
+    except:
+        parser.add_argument('--version', action='version', version='Standalone',
+                            help='Show version information and exit')
+        
+    parser.add_argument('-d', '--directory', metavar='dir', dest='directory', default='.',
                         help='Specify directory to place split files in. Default is \'.\'',)
 
     parser.add_argument('-p', '--prefix', metavar='prefix', dest='prefix', default='split',
@@ -244,19 +225,19 @@ def main():
 
     args = parser.parse_args()
 
-    args.dir = args.dir.rstrip('/')
-    if not os.path.isdir(args.dir):
-        os.mkdir(args.dir)
+    args.directory = args.directory.rstrip('/')
+    if not os.path.isdir(args.directory):
+        os.mkdir(args.directory)
 
     if args.every:
         if ('-p' in sys.argv or '--prefix' in sys.argv):
-            splite(args.fasta, args.prefix, args.full, args.quiet, args.dir, args.verbose, args.force)
+            splite(args.fasta, args.prefix, args.full, args.quiet, args.directory, args.verbose, args.force)
         else:
-            splite(args.fasta, None, args.full, args.quiet, args.dir, args.verbose, args.force)
+            splite(args.fasta, None, args.full, args.quiet, args.directory, args.verbose, args.force)
     elif args.seqnum:
-        splits(args.num, args.fasta, args.prefix, args.quiet, args.dir, args.verbose, args.force)
+        splits(args.num, args.fasta, args.prefix, args.quiet, args.directory, args.verbose, args.force)
     else:
-        splitn(args.num, args.fasta, args.prefix, args.quiet, args.dir, args.verbose, args.force)
+        splitn(args)
 
 if __name__ == '__main__':
     main()
