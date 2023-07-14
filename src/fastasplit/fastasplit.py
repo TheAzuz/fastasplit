@@ -8,7 +8,7 @@ split fasta files
 main script
 
 author: Josh Tompkin
-contact: tompkinjo@gmail.com
+contact: jtompkindev@gmail.com
 github: https://github.com/jtompkin/fastasplit
 """
 
