@@ -220,7 +220,9 @@ def _main():
                         help='Suppress printing progress messages to the screen')
     parser.add_argument('-v', '--verbose', dest='verbose', action='count', default=0,
                         help='Increases verbosity level. Can be invoked up to 3 times')
-    parser.add_argument('fasta', help='Path to fasta file')
+    parser.add_argument('fasta', nargs='?', default='-',
+                        help="""Path to fasta file. Read from
+                        stdin if '-'is given. Defaults to '-'""")
 
     args = parser.parse_args()
     # Create given directory if it does not exist.
