@@ -4,21 +4,23 @@
 ==============
 = fastasplit =
 ==============
+
 split fasta files
-main script
 
 author: Josh Tompkin
 contact: jtompkindev@gmail.com
 github: https://github.com/jtompkin/fastasplit
 """
 
-from typing import TextIO
 import argparse
 import sys
 import os
 
-from .version import __version__
-
+try:
+    from .version import __version__
+    _VERSION_GOOD = True
+except ModuleNotFoundError:
+    _VERSION_GOOD = False
 
 def confirm_continue(nfiles: int, force: bool, limit: int = 100) -> bool:
     """Check if there are too many output files and ask for confirmation to continue.
@@ -43,18 +45,16 @@ def confirm_continue(nfiles: int, force: bool, limit: int = 100) -> bool:
     return True
 
 
-def get_seq_num(fastafile: TextIO, quiet: bool) -> int:
-    """Return number of sequences in fasta file.
-
-    Args:
-        fasta (str): Path to fasta file
-        quiet (bool): Whether to print progress messages
-
-    Returns:
-        int: Number of sequences in fasta file
-    """
+def get_seq_num(fasta: str, quiet: bool) -> int:
+    """Return number of sequences in fasta file."""
     if not quiet:
         print ('Counting total sequences in fasta file...')
+
+    if fasta == '-':
+        fastafile = sys.stdin
+    else:
+        fastafile = open(fasta, 'rt', encoding='UTF-8')
+
     with fastafile:
         nseq = 0
         for line in fastafile:
@@ -133,14 +133,14 @@ def splitn(args) -> None:
     if confirm_continue(args.num, args.force, 100) is False:
         sys.exit(2)
 
+    ndigits = len(str(args.num))
+    splitnum = get_seq_num(args.fasta, args.quiet)
+    perfile, remain = (splitnum // args.num, splitnum % args.num)
+
     if args.fasta == '-':
         fastafile = sys.stdin
     else:
         fastafile = open(args.fasta, 'rt', encoding='UTF-8')
-
-    ndigits = len(str(args.num))
-    splitnum = get_seq_num(fastafile, args.quiet)
-    perfile, remain = (splitnum // args.num, splitnum % args.num)
 
     with fastafile:
         splitnum = 1
@@ -200,11 +200,11 @@ def _main():
     parser = argparse.ArgumentParser(prog='fastasplit',
                                      description="Split a fasta file into smaller fasta files.")
 
-    try:
+    if _VERSION_GOOD is True:
         parser.add_argument('--version', action='version',
                             version=f"{'%(prog)s'} {__version__}",
                             help='Show version information and exit')
-    except NameError:
+    else:
         parser.add_argument('--version', action='version',
                             version=f"{'%(prog)s'} standalone",
                             help='Show version information and exit')
