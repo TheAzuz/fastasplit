@@ -20,7 +20,7 @@ import os
 try:
     from .version import __version__
     _VERSION_GOOD = True
-except ModuleNotFoundError:
+except ImportError:
     _VERSION_GOOD = False
 
 def confirm_continue(nfiles: int, force: bool, limit: int = 100) -> bool:
@@ -256,8 +256,9 @@ def _main():
                         Some features will not work if '-' is given""")
 
     args = parser.parse_args()
+    print(args.fasta, args.num, args.seqnum)
 
-    if args.fasta == '-' and (args.num is not None and args.seqnum is None):
+    if args.fasta == '-' and (args.num is not None and args.seqnum is False):
         raise argparse.ArgumentError(None, "Fasta cannot be read from stdin "+
                                      "if -s is not provided along with -n")
     # Create given directory if it does not exist.

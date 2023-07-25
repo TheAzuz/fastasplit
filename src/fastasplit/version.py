@@ -1,2 +1,2 @@
 """Hold version information."""
-__version__ = '1.2.10.post4'
+__version__ = '1.3.0'
