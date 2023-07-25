@@ -196,7 +196,7 @@ def splitn(args) -> None:
 
 
 def pos_int(num) -> int:
-    """Helper function for argparser"""
+    """Test if `num` is a positive integer."""
     try:
         num = int(num)
     except ValueError as exc:
