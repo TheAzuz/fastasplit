@@ -51,16 +51,16 @@ def get_fasta_file(path: str) -> TextIO:
         return sys.stdin
     return open(path, 'rt', encoding='UTF-8')
 
-def get_seq_num(fasta: str, quiet: bool) -> int:
+def get_seq_num(path: str, quiet: bool) -> int:
     """Return number of sequences in fasta file."""
     if not quiet:
         print ('Counting total sequences in fasta file...')
 
-    fastafile = get_fasta_file(fasta)
+    fasta = get_fasta_file(path)
 
-    with fastafile:
+    with fasta:
         nseq = 0
-        for line in fastafile:
+        for line in fasta:
             if line[0] == '>':  # Line is a sequence header
                 nseq += 1
         if not quiet:
