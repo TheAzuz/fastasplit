@@ -17,10 +17,7 @@ import argparse
 import sys
 import os
 
-try:
-    from version import __version__
-except ModuleNotFoundError:
-    pass
+from .version import __version__
 
 
 def confirm_continue(nfiles: int, force: bool, limit: int = 100) -> bool:
@@ -63,9 +60,9 @@ def get_seq_num(fastafile: TextIO, quiet: bool) -> int:
         for line in fastafile:
             if line[0] == '>':  # Line is a sequence header
                 nseq += 1
-    if not quiet:
-        print (f"Found {nseq} sequences in fasta file")
-    return nseq
+        if not quiet:
+            print (f"Found {nseq} sequences in fasta file")
+        return nseq
 
 
 def splite(args) -> None:
@@ -209,7 +206,8 @@ def _main():
                             help='Show version information and exit')
     except NameError:
         parser.add_argument('--version', action='version',
-                            version='standalone', help='Show version information and exit')
+                            version=f"{'%(prog)s'} standalone",
+                            help='Show version information and exit')
     parser.add_argument('--force', dest='force', action='store_true',
                         help='Do not prompt for comfirmation when creating a large number of files')
 
