@@ -45,24 +45,26 @@ def confirm_continue(nfiles: int, force: bool, limit: int = 100) -> bool:
                     return True
     return True
 
+
 def get_fasta_file(path: str) -> TextIO:
     """Return file object from `path`."""
     if path == '-':
         return sys.stdin
     return open(path, 'rt', encoding='UTF-8')
 
+
 def get_seq_num(fastafile: TextIO, quiet: bool) -> int:
     """Return number of sequences in fasta file."""
     if not quiet:
         print ('Counting total sequences in fasta file...')
 
-    nseq = 0
-    for line in fastafile:
-        if line[0] == '>':  # Line is a sequence header
-            nseq += 1
-    fastafile.seek(0)
-    if not quiet:
-        print (f"Found {nseq} sequences in fasta file")
+    with fastafile:
+        nseq = 0
+        for line in fastafile:
+            if line[0] == '>':  # Line is a sequence header
+                nseq += 1
+        if not quiet:
+            print (f"Found {nseq} sequences in fasta file")
     return nseq
 
 
@@ -128,19 +130,21 @@ def splits(args) -> None:
                     seqcount = 1
             splitfile.write(line)
 
+
 def splitn(args) -> None:
     """Split fasta file into a number of files with equal number of sequences"""
 
     if confirm_continue(args.num, args.force, 100) is False:
         sys.exit(2)
 
+    seqnum = get_seq_num(get_fasta_file(args.fasta), args.quiet)
+    perfile, remain = (seqnum // args.num, seqnum % args.num)
+
     ndigits = len(str(args.num))
 
     fastafile = get_fasta_file(args.fasta)
 
     with fastafile:
-        seqnum = get_seq_num(fastafile, args.quiet)
-        perfile, remain = (seqnum // args.num, seqnum % args.num)
 
         splitnum = 1
         splitfile = open(f'{args.directory}/{args.prefix}.{splitnum:0{ndigits}d}.fa',
