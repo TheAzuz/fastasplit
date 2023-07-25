@@ -12,6 +12,7 @@ contact: jtompkindev@gmail.com
 github: https://github.com/jtompkin/fastasplit
 """
 
+from typing import TextIO
 import argparse
 import sys
 import os
@@ -44,16 +45,18 @@ def confirm_continue(nfiles: int, force: bool, limit: int = 100) -> bool:
                     return True
     return True
 
+def get_fasta_file(path: str) -> TextIO:
+    """Return file object from `path`."""
+    if path == '-':
+        return sys.stdin
+    return open(path, 'rt', encoding='UTF-8')
 
 def get_seq_num(fasta: str, quiet: bool) -> int:
     """Return number of sequences in fasta file."""
     if not quiet:
         print ('Counting total sequences in fasta file...')
 
-    if fasta == '-':
-        fastafile = sys.stdin
-    else:
-        fastafile = open(fasta, 'rt', encoding='UTF-8')
+    fastafile = get_fasta_file(fasta)
 
     with fastafile:
         nseq = 0
@@ -137,10 +140,7 @@ def splitn(args) -> None:
     splitnum = get_seq_num(args.fasta, args.quiet)
     perfile, remain = (splitnum // args.num, splitnum % args.num)
 
-    if args.fasta == '-':
-        fastafile = sys.stdin
-    else:
-        fastafile = open(args.fasta, 'rt', encoding='UTF-8')
+    fastafile = get_fasta_file(args.fasta)
 
     with fastafile:
         splitnum = 1
