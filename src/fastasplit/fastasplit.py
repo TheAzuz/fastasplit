@@ -15,11 +15,37 @@ github: https://github.com/jtompkin/fastasplit
 import argparse
 import sys
 import os
+try:
+    from version import __version__
+except ModuleNotFoundError:
+    pass
 
-from version import __version__
+
+def confirm_continue(nfiles: int, force: bool, limit: int = 100) -> bool:
+    """Check if there are too many output files and ask for confirmation to continue.
+    
+    Args:
+        nfiles (int): Number of files that will be created
+        force (bool): Will not ask for confirmation if `True`
+        limit (int): Max number of files before confirmation is needed
+
+    Returns:
+        bool: `True` if user wants to continue, else `False`
+    """
+    if force is not True:
+        if nfiles > limit:
+            while True:
+                cont = input(f"""This command will create {nfiles} output files.
+                             Are you sure you want to proceed? (y/n) """).lower()
+                if cont == 'n':
+                    return False
+                if cont == 'y':
+                    return True
+    return True
+
 
 def getseqn(fasta: str, quiet: bool) -> int:
-    """Reutns number of sequences in given fasta file
+    """Return number of sequences in fasta file.
 
     Args:
         fasta (str): Path to fasta file
@@ -43,17 +69,8 @@ def getseqn(fasta: str, quiet: bool) -> int:
 def splite(args) -> None:
     """Split each sequence in fasta file into a separate file"""
     seqnum = getseqn(args.fasta, args.quiet)
-    if not args.force:
-        if seqnum > 100:
-            flag = True
-            while flag:
-                cont = input(f"""This command will create {seqnum} output files.
-                             Are you sure you want to proceed? (y/n) """).lower()
-                if cont == 'n':
-                    flag = False
-                    sys.exit()
-                elif cont == 'y':
-                    flag = False
+    if confirm_continue(seqnum, args.force, 100) is False:
+        sys.exit(2)
 
     ndigits = len(str(seqnum))
     with open(args.fasta, 'r', encoding="UTF-8") as fastafile:
@@ -83,19 +100,10 @@ def splits(args) -> None:
 
     nseq = getseqn(args.fasta, args.quiet)
     nfile = (nseq // args.num) + (nseq % args.num > 0)
-    ndigit = len(str(nfile))
-    if not args.force:
-        if nfile > 100:
-            flag = True
-            while flag:
-                cont = input(f"""This command will create {nfile} output files.
-                             Are you sure you want to proceed? (y/n) """).lower()
-                if cont == 'n':
-                    flag = False
-                    quit()
-                elif cont == 'y':
-                    flag = False
+    if confirm_continue(nfile, args.force, 100) is False:
+        sys.exit(2)
 
+    ndigit = len(str(nfile))
     with open(args.fasta, 'r', encoding="UTF-8") as fastafile:
         splitnum = 1
         splitfile = open(f"{args.directory}/{args.prefix}.{splitnum:0{ndigit}d}.fa", 'w', encoding="UTF-8")
@@ -118,27 +126,22 @@ def splits(args) -> None:
                     seqcount = 1
             splitfile.write(line)
 
-
 def splitn(args) -> None:
     """Split fasta file into a number of files with equal number of sequences"""
 
-    if not args.force:
-        if args.num > 100:
-            flag = True
-            while flag:
-                cont = input(f"""This command will create {args.num} output files.
-                             Are you sure you want to proceed? (y/n) """).lower()
-                if cont == 'n':
-                    flag = False
-                    sys.exit(2)
-                elif cont == 'y':
-                    flag = False
+    if confirm_continue(args.num, args.force, 100) is False:
+        sys.exit(2)
 
     ndigits = len(str(args.num))
     splitnum = getseqn(args.fasta, args.quiet)
     perfile, remain = (splitnum // args.num, splitnum % args.num)
 
-    with open(args.fasta, 'r', encoding='UTF-8') as fastafile:
+    if args.fasta == '-':
+        fastafile = sys.stdin
+    else:
+        fastafile = open(args.fasta, 'rt', encoding='UTF-8')
+
+    with fastafile:
         splitnum = 1
         splitfile = open(f'{args.directory}/{args.prefix}.{splitnum:0{ndigits}d}.fa', 'w', encoding='UTF-8')
         if remain > 0:
@@ -153,11 +156,13 @@ def splitn(args) -> None:
 
         seqcount = 0
         for line in fastafile:
-            if line[0] == '>':  # Line is a sequence header
+            # Line is a sequence header
+            if line[0] == '>':
                 if args.verbose > 2:
                     print (f"Adding sequence: {line[1:].strip()}")
                 seqcount += 1
-                if seqcount > perthisfile:  # Need to open new split file
+                # Need to open new split file
+                if seqcount > perthisfile:
                     splitfile.close()
                     splitnum += 1
                     splitfile = open(f'{args.directory}/{args.prefix}.{splitnum:0{ndigits}d}.fa', 'w', encoding='UTF-8')
@@ -192,15 +197,19 @@ def _main():
     parser = argparse.ArgumentParser(prog='fastasplit',
                                      description="Split a fasta file into smaller fasta files.")
 
-    parser.add_argument('--version', action='version',
-                        version=f"{'%(prog)s'} {__version__}",
-                        help='Show version information and exit')
+    try:
+        parser.add_argument('--version', action='version',
+                            version=f"{'%(prog)s'} {__version__}",
+                            help='Show version information and exit')
+    except NameError:
+        parser.add_argument('--version', action='version',
+                            version='standalone', help='Show version information and exit')
     parser.add_argument('--force', dest='force', action='store_true',
                         help='Do not prompt for comfirmation when creating a large number of files')
 
     split_opts = parser.add_argument_group('Split options')
     split_opts.add_argument('-n', '--number', metavar='int', dest='num', type=pos_int,
-                            required=not ('-e' in sys.argv or '--every' in sys.argv),
+                            required=not('-e' in sys.argv or '--every' in sys.argv),
                             help="""Number of files to split fasta into, or number of sequences
                             per file if `-s` is provided. Required if `-e` is not provided""")
     split_opts.add_argument('-s', '--seqnum', dest='seqnum', action='store_true',
