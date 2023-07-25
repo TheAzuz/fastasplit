@@ -12,11 +12,11 @@ contact: jtompkindev@gmail.com
 github: https://github.com/jtompkin/fastasplit
 """
 
-from importlib.metadata import version, PackageNotFoundError
 import argparse
 import sys
 import os
 
+from version import __version__
 
 def getseqn(fasta: str, quiet: bool) -> int:
     """Reutns number of sequences in given fasta file
@@ -189,16 +189,12 @@ def pos_int(num) -> int:
 
 def _main():
     """Main script wrapper. Parse arguments and call appropriate function."""
-    parser = argparse.ArgumentParser(
-        description="Split a fasta file into smaller fasta files.")
+    parser = argparse.ArgumentParser(prog='fastasplit',
+                                     description="Split a fasta file into smaller fasta files.")
 
-    try:
-        parser.add_argument('--version', action='version',
-                            version=f"{'%(prog)s'} {version('fastasplit')}",
-                            help='Show version information and exit')
-    except PackageNotFoundError:
-        parser.add_argument('--version', action='version', version='Standalone',
-                            help='Show version information and exit')
+    parser.add_argument('--version', action='version',
+                        version=f"{'%(prog)s'} {__version__}",
+                        help='Show version information and exit')
     parser.add_argument('--force', dest='force', action='store_true',
                         help='Do not prompt for comfirmation when creating a large number of files')
 
