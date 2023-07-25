@@ -70,12 +70,17 @@ def get_seq_num(fastafile: TextIO, quiet: bool) -> int:
 
 def splite(args) -> None:
     """Split each sequence in fasta file into a separate file"""
-    seqnum = get_seq_num(args.fasta, args.quiet)
-    if confirm_continue(seqnum, args.force, 100) is False:
-        sys.exit(2)
+    if args.fasta != '-':
+        seqnum = get_seq_num(get_fasta_file(args.fasta), args.quiet)
+        if confirm_continue(seqnum, args.force, 100) is False:
+            sys.exit(2)
+        ndigits = len(str(seqnum))
+    else:
+        seqnum = 'unknown'
+        ndigits = 3
 
-    ndigits = len(str(seqnum))
-    with open(args.fasta, 'r', encoding="UTF-8") as fastafile:
+    fastafile = get_fasta_file(args.fasta)
+    with fastafile:
         nsplit = 1
         for line in fastafile:
             if line[0] == '>':
@@ -99,14 +104,19 @@ def splite(args) -> None:
 
 def splits(args) -> None:
     """Split fasta file by number of sequences"""
+    if args.fasta != '-':
+        nseq = get_seq_num(get_fasta_file(args.fasta), args.quiet)
+        nfile = (nseq // args.num) + (nseq % args.num > 0)
+        if confirm_continue(nfile, args.force, 100) is False:
+            sys.exit(2)
+        ndigit = len(str(nfile))
+    else:
+        nfile = 'unknown'
+        ndigit = 3
 
-    nseq = get_seq_num(args.fasta, args.quiet)
-    nfile = (nseq // args.num) + (nseq % args.num > 0)
-    if confirm_continue(nfile, args.force, 100) is False:
-        sys.exit(2)
+    fastafile = get_fasta_file(args.fasta)
 
-    ndigit = len(str(nfile))
-    with open(args.fasta, 'r', encoding="UTF-8") as fastafile:
+    with fastafile:
         splitnum = 1
         splitfile = open(f"{args.directory}/{args.prefix}.{splitnum:0{ndigit}d}.fa",
                          'w', encoding="UTF-8")
@@ -218,7 +228,8 @@ def _main():
     split_opts.add_argument('-n', '--number', metavar='int', dest='num', type=pos_int,
                             required=not('-e' in sys.argv or '--every' in sys.argv),
                             help="""Number of files to split fasta into, or number of sequences
-                            per file if `-s` is provided. Required if `-e` is not provided""")
+                            per file if `-s` is provided. `-s` must be provided to
+                            use stdin for input. Required if `-e` is not provided""")
     split_opts.add_argument('-s', '--seqnum', dest='seqnum', action='store_true',
                             help='`-n` represents number of sequences to put in each file')
     split_opts.add_argument('-e', '--every', dest='every', action='store_true',
@@ -240,11 +251,15 @@ def _main():
     message_opts.add_argument('-v', '--verbose', dest='verbose', action='count', default=0,
                               help='Increases verbosity level. Can be invoked up to 3 times')
 
-    parser.add_argument('fasta', nargs='?', default='-',
-                        help="""Path to fasta file. Read from
-                        stdin if '-' is given. Defaults to '-'""")
+    parser.add_argument('fasta',
+                        help="""Path to fasta file. Read from stdin if '-' is given.
+                        Some features will not work if '-' is given""")
 
     args = parser.parse_args()
+
+    if args.fasta == '-' and (args.num is not None and args.seqnum is None):
+        raise argparse.ArgumentError(None, "Fasta cannot be read from stdin "+
+                                     "if -s is not provided along with -n")
     # Create given directory if it does not exist.
     args.directory = args.directory.rstrip('/')
     if not os.path.isdir(args.directory):
