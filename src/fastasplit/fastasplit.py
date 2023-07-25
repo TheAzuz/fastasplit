@@ -256,7 +256,6 @@ def _main():
                         Some features will not work if '-' is given""")
 
     args = parser.parse_args()
-    print(args.fasta, args.num, args.seqnum)
 
     if args.fasta == '-' and (args.num is not None and args.seqnum is False):
         raise argparse.ArgumentError(None, "Fasta cannot be read from stdin "+
