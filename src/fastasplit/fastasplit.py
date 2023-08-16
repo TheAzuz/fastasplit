@@ -1,11 +1,11 @@
 #! /usr/bin/env python3
 
 """
+split fasta files
+
 ==============
 = fastasplit =
 ==============
-
-split fasta files
 
 author: Josh Tompkin
 contact: jtompkindev@gmail.com
@@ -18,22 +18,13 @@ import sys
 import os
 
 try:
-    from ._version import __version__
+    from .version import __version__
     _VERSION_GOOD = True
 except ImportError:
     _VERSION_GOOD = False
 
 def confirm_continue(nfiles: int, force: bool, limit: int = 100) -> bool:
-    """Check if there are too many output files and ask for confirmation to continue.
-    
-    Args:
-        nfiles (int): Number of files that will be created
-        force (bool): Will not ask for confirmation if `True`
-        limit (int): Max number of files before confirmation is needed
-
-    Returns:
-        bool: `True` if user wants to continue, else `False`
-    """
+    """Check if there are too many output files and ask for confirmation to continue."""
     if force is not True:
         if nfiles > limit:
             while True:
