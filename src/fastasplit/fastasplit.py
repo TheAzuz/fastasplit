@@ -18,7 +18,7 @@ import sys
 import os
 
 try:
-    from .version import __version__
+    from ._version import __version__
     _VERSION_GOOD = True
 except ImportError:
     _VERSION_GOOD = False
@@ -213,7 +213,7 @@ def main():
     parser = argparse.ArgumentParser(prog='fastasplit',
                                      description="Split a fasta file into smaller fasta files.")
 
-    if _VERSION_GOOD is True:
+    if _VERSION_GOOD:
         parser.add_argument('--version', action='version',
                             version=f"{'%(prog)s'} {__version__}",
                             help='Show version information and exit')
