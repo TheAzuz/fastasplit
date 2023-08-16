@@ -208,7 +208,7 @@ def pos_int(num) -> int:
     return num
 
 
-def _main():
+def main():
     """Main script wrapper. Parse arguments and call appropriate function."""
     parser = argparse.ArgumentParser(prog='fastasplit',
                                      description="Split a fasta file into smaller fasta files.")
@@ -273,4 +273,4 @@ def _main():
         splitn(args)
 
 if __name__ == '__main__':
-    _main()
+    main()
