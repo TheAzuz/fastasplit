@@ -23,65 +23,66 @@ try:
 except ImportError:
     _VERSION_GOOD = False
 
-def confirm_continue(nfiles: int, force: bool, limit: int = 100) -> bool:
+def confirm_continue(file_number: int, force: bool, limit: int = 100) -> bool:
     """Check if there are too many output files and ask for confirmation to continue."""
-    if force is not True:
-        if nfiles > limit:
-            while True:
-                cont = input(f"This command will create {nfiles} output files. "+
-                              "Are you sure you want to proceed? (y/n) ").lower()
-                if cont == 'n':
-                    return False
-                if cont == 'y':
-                    return True
-    return True
+    if force:
+        return True
+    if file_number <= limit:
+        return True
+    while True:
+        continue_choice = input(f"This command will create {file_number} output files. "+
+                                "Are you sure you want to proceed? (y/n) ").lower()
+        if continue_choice == 'n':
+            return False
+        if continue_choice == 'y':
+            return True
 
 
-def get_fasta_file(path: str) -> TextIO:
+def get_fasta_file(file_path: str) -> TextIO:
     """Return file object from `path`."""
-    if path == '-':
+    if file_path == '-':
         return sys.stdin
-    return open(path, 'rt', encoding='UTF-8')
+    return open(file_path, 'rt', encoding='UTF-8')
 
 
-def get_seq_num(fastafile: TextIO, quiet: bool) -> int:
+def get_sequence_number(fasta_file: TextIO, quiet: bool) -> int:
     """Return number of sequences in fasta file."""
     if not quiet:
-        print ('Counting total sequences in fasta file...')
+        print('Counting total sequences in fasta file...')
 
-    with fastafile:
-        nseq = 0
-        for line in fastafile:
+    with fasta_file:
+        sequence_count = 0
+        for line in fasta_file:
             if line[0] == '>':  # Line is a sequence header
-                nseq += 1
-        if not quiet:
-            print (f"Found {nseq} sequences in fasta file")
-    return nseq
+                sequence_count += 1
+    if not quiet:
+        print (f"Found {sequence_count} sequences in fasta file")
+    return sequence_count
 
 
-def splite(args) -> None:
+def split_each(args) -> None:
     """Split each sequence in fasta file into a separate file"""
     if args.fasta != '-':
-        seqnum = get_seq_num(get_fasta_file(args.fasta), args.quiet)
-        if confirm_continue(seqnum, args.force, 100) is False:
+        sequence_number = get_sequence_number(get_fasta_file(args.fasta), args.quiet)
+        if not confirm_continue(sequence_number, args.force, 100):
             sys.exit(2)
-        ndigits = len(str(seqnum))
+        digit_number = len(str(sequence_number))
     else:
-        seqnum = 'unknown'
-        ndigits = 3
+        sequence_number = 'unknown'
+        digit_number = 3
 
-    fastafile = get_fasta_file(args.fasta)
-    with fastafile:
-        nsplit = 1
-        for line in fastafile:
+    fasta_file = get_fasta_file(args.fasta)
+    with fasta_file:
+        split_count = 1
+        for line in fasta_file:
             if line[0] == '>':
                 if args.prefix is not None:
-                    name = f"{args.prefix}.{nsplit:0{ndigits}d}.fa"
+                    name = f"{args.prefix}.{split_count:0{digit_number}d}.fa"
                     if not args.quiet:
                         if args.verbose > 0:
-                            print(f"Creating split file {nsplit}/{seqnum}...")
+                            print(f"Creating split file {split_count}/{sequence_number}...")
                         elif args.verbose > 1:
-                            print(f"Creating split file {nsplit}/{seqnum} "+
+                            print(f"Creating split file {split_count}/{sequence_number} "+
                                   f"for sequence: {line.strip()[1:]}")
                 elif args.full:
                     name = line.strip()[1:]
@@ -89,14 +90,14 @@ def splite(args) -> None:
                     words = line.strip().split()
                     name = f"{words[0][1:] if len(words[0]) > 1 else words[1]}.fa"
                 splitfile = open(f"{args.directory}/{name}", 'w', encoding="UTF-8")
-                nsplit += 1
+                split_count += 1
             splitfile.write(line)
 
 
 def splits(args) -> None:
     """Split fasta file by number of sequences"""
     if args.fasta != '-':
-        nseq = get_seq_num(get_fasta_file(args.fasta), args.quiet)
+        nseq = get_sequence_number(get_fasta_file(args.fasta), args.quiet)
         nfile = (nseq // args.num) + (nseq % args.num > 0)
         if confirm_continue(nfile, args.force, 100) is False:
             sys.exit(2)
@@ -138,7 +139,7 @@ def splitn(args) -> None:
     if confirm_continue(args.num, args.force, 100) is False:
         sys.exit(2)
 
-    seqnum = get_seq_num(get_fasta_file(args.fasta), args.quiet)
+    seqnum = get_sequence_number(get_fasta_file(args.fasta), args.quiet)
     perfile, remain = (seqnum // args.num, seqnum % args.num)
 
     ndigits = len(str(args.num))
@@ -186,61 +187,56 @@ def splitn(args) -> None:
             splitfile.write(line)
 
 
-def pos_int(num) -> int:
-    """Test if `num` is a positive integer."""
+def pos_int(argument) -> int:
+    """Test if `x` is a positive integer."""
     try:
-        num = int(num)
+        argument = int(argument)
     except ValueError as exc:
         raise argparse.ArgumentError(
-            None, f"argument -n/--number: Invalid positive integer value: {num}") from exc
-    if num <= 0:
+            None, f"argument -n/--number: Invalid positive integer value: {argument}") from exc
+    if argument <= 0:
         raise argparse.ArgumentError(
-            None, f"argument -n/--number: Invalid positive integer value: {num}")
-    return num
+            None, f"argument -n/--number: Invalid positive integer value: {argument}")
+    return argument
 
 
 def main():
     """Main script wrapper. Parse arguments and call appropriate function."""
     parser = argparse.ArgumentParser(prog='fastasplit',
                                      description="Split a fasta file into smaller fasta files.")
+    program_version = f"{parser.prog} {__version__ if _VERSION_GOOD else 'standalone'}"
+    parser.add_argument('--version', action='version',
+                        version=program_version,
+                        help='Show version information and exit')
 
-    if _VERSION_GOOD:
-        parser.add_argument('--version', action='version',
-                            version=f"{'%(prog)s'} {__version__}",
-                            help='Show version information and exit')
-    else:
-        parser.add_argument('--version', action='version',
-                            version=f"{'%(prog)s'} standalone",
-                            help='Show version information and exit')
+    split_options = parser.add_argument_group('split options')
+    split_options.add_argument('-n', '--number', metavar='int', dest='num', type=pos_int,
+                               required=not('-e' in sys.argv or '--every' in sys.argv),
+                               help="""Number of files to split fasta into, or number of sequences
+                               per file if `-s` is provided. `-s` must be provided to
+                               use stdin for input. Required if `-e` is not provided""")
+    split_options.add_argument('-s', '--seqnum', dest='seqnum', action='store_true',
+                               help='`-n` represents number of sequences to put in each file')
+    split_options.add_argument('-e', '--every', dest='every', action='store_true',
+                               help='Split each sequence into its own file. Do not provide `-n`')
 
-    split_opts = parser.add_argument_group('split options')
-    split_opts.add_argument('-n', '--number', metavar='int', dest='num', type=pos_int,
-                            required=not('-e' in sys.argv or '--every' in sys.argv),
-                            help="""Number of files to split fasta into, or number of sequences
-                            per file if `-s` is provided. `-s` must be provided to
-                            use stdin for input. Required if `-e` is not provided""")
-    split_opts.add_argument('-s', '--seqnum', dest='seqnum', action='store_true',
-                            help='`-n` represents number of sequences to put in each file')
-    split_opts.add_argument('-e', '--every', dest='every', action='store_true',
-                            help='Split each sequence into its own file. Do not provide `-n`')
+    naming_options = parser.add_argument_group('naming options')
+    naming_options.add_argument('-d', '--directory', metavar='dir', dest='directory', default='.',
+                                help="Specify directory to place split files in. Default is '.'")
+    naming_options.add_argument('-p', '--prefix', metavar='prefix', dest='prefix', default='split',
+                                help="""Prefix to use for naming all split files.
+                                Default is 'split', or first word of sequence header if `-e`""")
+    naming_options.add_argument('-f', '--fullhead', dest='full', action='store_true',
+                                help="""Use with `-e`. Use full sequence header
+                                as prefix instead of just the first word""")
 
-    naming_opts = parser.add_argument_group('naming options')
-    naming_opts.add_argument('-d', '--directory', metavar='dir', dest='directory', default='.',
-                             help="Specify directory to place split files in. Default is '.'")
-    naming_opts.add_argument('-p', '--prefix', metavar='prefix', dest='prefix', default='split',
-                             help="""Prefix to use for naming all split files.
-                             Default is 'split', or first word of sequence header if `-e`""")
-    naming_opts.add_argument('-f', '--fullhead', dest='full', action='store_true',
-                             help="""Use with `-e`. Use full sequence header
-                             as prefix instead of just the first word""")
-
-    message_opts = parser.add_argument_group('message options')
-    message_opts.add_argument('-q', '--quiet', dest='quiet', action='store_true',
-                              help='Suppress progress messages')
-    message_opts.add_argument('-v', '--verbose', dest='verbose', action='count', default=0,
-                              help='Increases verbosity level. Can be invoked up to 3 times')
-    parser.add_argument('--force', dest='force', action='store_true',
-                        help='Do not prompt for comfirmation when creating a large number of files')
+    message_options = parser.add_argument_group('message options')
+    message_options.add_argument('-q', '--quiet', dest='quiet', action='store_true',
+                                 help='Suppress progress messages')
+    message_options.add_argument('-v', '--verbose', dest='verbose', action='count', default=0,
+                                 help='Increases verbosity level. Can be invoked up to 3 times')
+    message_options.add_argument('--force', dest='force', action='store_true',
+                                 help='Do not prompt for comfirmation when creating a large number of files')
 
     parser.add_argument('fasta',
                         help="""Path to fasta file. Read from stdin if '-' is given.
@@ -257,7 +253,7 @@ def main():
         os.mkdir(args.directory)
 
     if args.every:
-        splite(args)
+        split_each(args)
     elif args.seqnum:
         splits(args)
     else:
