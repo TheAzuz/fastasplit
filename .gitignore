@@ -164,3 +164,6 @@ Test/
 
 # Mac files
 .DS_Store
+
+# VScode files
+.vscode
