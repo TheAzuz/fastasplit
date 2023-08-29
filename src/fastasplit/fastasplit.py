@@ -1,5 +1,4 @@
 #! /usr/bin/env python3
-
 """
 split fasta files
 
@@ -204,6 +203,7 @@ def main():
     """Main script wrapper. Parse arguments and call appropriate function."""
     parser = argparse.ArgumentParser(prog='fastasplit',
                                      description="Split a fasta file into smaller fasta files.")
+
     program_version = f"{parser.prog} {__version__ if _VERSION_GOOD else 'standalone'}"
     parser.add_argument('--version', action='version',
                         version=program_version,
@@ -236,7 +236,8 @@ def main():
     message_options.add_argument('-v', '--verbose', dest='verbose', action='count', default=0,
                                  help='Increases verbosity level. Can be invoked up to 3 times')
     message_options.add_argument('--force', dest='force', action='store_true',
-                                 help='Do not prompt for comfirmation when creating a large number of files')
+                                 help="""Do not prompt for comfirmation
+                                 when creating a large number of files""")
 
     parser.add_argument('fasta',
                         help="""Path to fasta file. Read from stdin if '-' is given.
