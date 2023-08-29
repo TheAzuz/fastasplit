@@ -221,10 +221,8 @@ def main():
         parser.add_argument('--version', action='version',
                             version=f"{'%(prog)s'} standalone",
                             help='Show version information and exit')
-    parser.add_argument('--force', dest='force', action='store_true',
-                        help='Do not prompt for comfirmation when creating a large number of files')
 
-    split_opts = parser.add_argument_group('Split options')
+    split_opts = parser.add_argument_group('split options')
     split_opts.add_argument('-n', '--number', metavar='int', dest='num', type=pos_int,
                             required=not('-e' in sys.argv or '--every' in sys.argv),
                             help="""Number of files to split fasta into, or number of sequences
@@ -235,7 +233,7 @@ def main():
     split_opts.add_argument('-e', '--every', dest='every', action='store_true',
                             help='Split each sequence into its own file. Do not provide `-n`')
 
-    naming_opts = parser.add_argument_group('Naming options')
+    naming_opts = parser.add_argument_group('naming options')
     naming_opts.add_argument('-d', '--directory', metavar='dir', dest='directory', default='.',
                              help="Specify directory to place split files in. Default is '.'")
     naming_opts.add_argument('-p', '--prefix', metavar='prefix', dest='prefix', default='split',
@@ -245,11 +243,13 @@ def main():
                              help="""Use with `-e`. Use full sequence header
                              as prefix instead of just the first word""")
 
-    message_opts = parser.add_argument_group('Message options')
+    message_opts = parser.add_argument_group('message options')
     message_opts.add_argument('-q', '--quiet', dest='quiet', action='store_true',
                               help='Suppress progress messages')
     message_opts.add_argument('-v', '--verbose', dest='verbose', action='count', default=0,
                               help='Increases verbosity level. Can be invoked up to 3 times')
+    parser.add_argument('--force', dest='force', action='store_true',
+                        help='Do not prompt for comfirmation when creating a large number of files')
 
     parser.add_argument('fasta',
                         help="""Path to fasta file. Read from stdin if '-' is given.
