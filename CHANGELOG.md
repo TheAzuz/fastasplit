@@ -36,3 +36,8 @@
 
 ### Changed
 - Formatting in source
+
+## [1.3.0] - 2023-07-25
+
+### Added
+- Ability to use stdin for input
