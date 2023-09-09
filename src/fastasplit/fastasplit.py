@@ -10,7 +10,6 @@ author: Josh Tompkin
 contact: jtompkindev@gmail.com
 github: https://github.com/jtompkin/fastasplit
 """
-
 from typing import TextIO
 import argparse
 import sys
@@ -21,6 +20,7 @@ try:
     _VERSION_GOOD = True
 except ImportError:
     _VERSION_GOOD = False
+
 
 def confirm_continue(file_number: int, force: bool, limit: int = 100) -> bool:
     """Check if there are too many output files and ask for confirmation to continue."""
@@ -93,7 +93,7 @@ def split_each(args) -> None:
             splitfile.write(line)
 
 
-def splits(args) -> None:
+def split_sequence(args) -> None:
     """Split fasta file by number of sequences"""
     if args.fasta != '-':
         nseq = get_sequence_number(get_fasta_file(args.fasta), args.quiet)
@@ -132,7 +132,7 @@ def splits(args) -> None:
             splitfile.write(line)
 
 
-def splitn(args) -> None:
+def split_number(args) -> None:
     """Split fasta file into a number of files with equal number of sequences"""
 
     if confirm_continue(args.num, args.force, 100) is False:
@@ -187,7 +187,7 @@ def splitn(args) -> None:
 
 
 def pos_int(argument) -> int:
-    """Test if `x` is a positive integer."""
+    """Test if `argument` is a positive integer."""
     try:
         argument = int(argument)
     except ValueError as exc:
@@ -256,9 +256,9 @@ def main():
     if args.every:
         split_each(args)
     elif args.seqnum:
-        splits(args)
+        split_sequence(args)
     else:
-        splitn(args)
+        split_number(args)
 
 if __name__ == '__main__':
     main()
