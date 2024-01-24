@@ -7,7 +7,7 @@ split fasta files
 ==============
 
 author: Josh Tompkin
-contact: jtompkindev@gmail.com
+contact: jtompkin-dev@proton.me
 github: https://github.com/jtompkin/fastasplit
 """
 from typing import TextIO
